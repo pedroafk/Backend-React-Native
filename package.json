@@ -12,7 +12,7 @@
     "backend",
     "unifei"
   ],
-  "author": "eduardo",
+  "author": "pedro",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.20.2",
