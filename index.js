@@ -31,6 +31,11 @@ app.get("/", (req, res) => {
   res.send("Ok – Servidor disponível.");//vai p browser
 });
 
+
+/// ---------------------------------------------------
+/// GET /table
+/// ---------------------------------------------------
+
 app.get("/usuarios", (req, res) => {
   try {
     client.query("SELECT * FROM Usuarios", function (err, result) {
@@ -44,6 +49,24 @@ app.get("/usuarios", (req, res) => {
     console.log(error);
   }
 });
+
+app.get("/videos", (req, res) => {
+  try {
+    client.query("SELECT * FROM videos", function (err, result) {
+      if (err) {
+        return console.error("Erro ao executar a qry de SELECT", err);
+      }
+      res.send(result.rows);
+      console.log("Rota: get videos");
+    });
+  } catch (error)  {
+    console.log(error);
+  }
+});
+
+/// ---------------------------------------------------
+/// GET /table:id
+/// ---------------------------------------------------
 
 app.get("/usuarios/:id", (req, res) => {
   try {
@@ -62,6 +85,28 @@ app.get("/usuarios/:id", (req, res) => {
     console.log(error);
   }
 });
+
+app.get("/videos/:id", (req, res) => {
+  try {
+    console.log("Rota: videos/" + req.params.id);
+    client.query(
+      "SELECT * FROM videos WHERE id = $1", [req.params.id],
+      (err, result) => {
+        if (err) {
+          return console.error("Erro ao executar a qry de SELECT id", err);
+        }
+        res.send(result.rows);
+        //console.log(result);
+      }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+/// ---------------------------------------------------
+/// DELETE /table/:id
+/// ---------------------------------------------------
 
 app.delete("/usuarios/:id", (req, res) => {
   try {
@@ -85,6 +130,12 @@ app.delete("/usuarios/:id", (req, res) => {
   }
 });
 
+
+
+/// ---------------------------------------------------
+/// Função "()" é responsável por
+/// ---------------------------------------------------
+
 app.post("/usuarios", (req, res) => {
   try {
     console.log("Alguém enviou um post com os dados:", req.body);
@@ -105,6 +156,10 @@ app.post("/usuarios", (req, res) => {
     console.error(erro);
   }
 });
+
+/// ---------------------------------------------------
+/// Função "()" é responsável por
+/// ---------------------------------------------------
 
 app.put("/usuarios/:id", (req, res) => {
   try {
@@ -129,6 +184,32 @@ app.put("/usuarios/:id", (req, res) => {
   }
 });
 
+app.put("/videos/:id", (req, res) => {
+  try {
+    console.log("Alguém enviou um update com os dados:", req.body);
+    const id = req.params.id;
+    const { name, description, thumbnail } = req.body;
+    client.query(
+      "UPDATE videos SET name=$1, description=$2, thumbnail=$3, WHERE id =$5 ",
+      [name, description, thumbnail, id],
+       (err, result) => {
+        if (err) {
+          return console.error("Erro ao executar a qry de UPDATE", err);
+        } else {
+          res.setHeader("id", id);
+          res.status(202).json({ "identificador": id });
+          console.log(result);
+        }
+      }
+    );
+  } catch (erro) {
+    console.error(erro);
+  }
+});
+
+/// ---------------------------------------------------
+/// Listen Port
+/// ---------------------------------------------------
 
 app.listen(config.port, () =>
   console.log("Servidor funcionando na porta " + config.port)
