@@ -50,19 +50,20 @@ app.get("/usuarios", (req, res) => {
   }
 });
 
-app.get("/videos", (req, res) => {
+app.get("/usersapp", (req, res) => {
   try {
-    client.query("SELECT * FROM videos", function (err, result) {
+    client.query("SELECT * FROM usersapp", function (err, result) {
       if (err) {
         return console.error("Erro ao executar a qry de SELECT", err);
       }
       res.send(result.rows);
-      console.log("Rota: get videos");
+      console.log("Rota: get usersapp");
     });
   } catch (error)  {
     console.log(error);
   }
 });
+
 
 /// ---------------------------------------------------
 /// GET /table:id
@@ -86,11 +87,11 @@ app.get("/usuarios/:id", (req, res) => {
   }
 });
 
-app.get("/videos/:id", (req, res) => {
+app.get("/usersapp/:id", (req, res) => {
   try {
-    console.log("Rota: videos/" + req.params.id);
+    console.log("Rota: usersapp/" + req.params.id);
     client.query(
-      "SELECT * FROM videos WHERE id = $1", [req.params.id],
+      "SELECT * FROM usersapp WHERE id = $1", [req.params.id],
       (err, result) => {
         if (err) {
           return console.error("Erro ao executar a qry de SELECT id", err);
@@ -130,10 +131,32 @@ app.delete("/usuarios/:id", (req, res) => {
   }
 });
 
+app.delete("/usersapp/:id", (req, res) => {
+  try {
+    console.log("Rota: delete/" + req.params.id);
+    client.query(
+      "DELETE FROM usersapp WHERE id = $1", [req.params.id], (err, result) => {
+        if (err) {
+          return console.error("Erro ao executar a qry de DELETE", err);
+        } else {
+          if (result.rowCount == 0) {
+            res.status(404).json({ info: "Registro não encontrado."  });
+          } else {
+            res.status(200).json({ info: `Registro excluído. Código: ${req.params.id}` });
+          }
+        }
+        console.log(result);
+      }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 
 
 /// ---------------------------------------------------
-/// Função "()" é responsável por
+/// POST /table
 /// ---------------------------------------------------
 
 app.post("/usuarios", (req, res) => {
@@ -157,8 +180,29 @@ app.post("/usuarios", (req, res) => {
   }
 });
 
+app.post("/usersapp", (req, res) => {
+  try {
+    console.log("Alguém enviou um post com os dados:", req.body);
+    const { username, nome, status } = req.body;
+    client.query(
+      "INSERT INTO usersapp (username, nome, status) VALUES ($1, $2, $3) RETURNING * ", [username, nome, status],
+      (err, result) => {
+        if (err) {
+          return console.error("Erro ao executar a qry de INSERT", err);
+        }
+        const { id } = result.rows[0];
+        res.setHeader("id", `${id}`);
+        res.status(201).json(result.rows[0]);
+        console.log(result);
+      }
+    );
+  } catch (erro) {
+    console.error(erro);
+  }
+});
+
 /// ---------------------------------------------------
-/// Função "()" é responsável por
+/// PUT /table
 /// ---------------------------------------------------
 
 app.put("/usuarios/:id", (req, res) => {
@@ -184,14 +228,14 @@ app.put("/usuarios/:id", (req, res) => {
   }
 });
 
-app.put("/videos/:id", (req, res) => {
+app.put("/usersapp/:id", (req, res) => {
   try {
     console.log("Alguém enviou um update com os dados:", req.body);
     const id = req.params.id;
-    const { name, description, thumbnail } = req.body;
+    const { username, nome, status } = req.body;
     client.query(
-      "UPDATE videos SET name=$1, description=$2, thumbnail=$3, WHERE id =$5 ",
-      [name, description, thumbnail, id],
+      "UPDATE usersapp SET username=$1, nome=$2, status=$3 WHERE id =$4 ",
+      [username, nome, status, id],
        (err, result) => {
         if (err) {
           return console.error("Erro ao executar a qry de UPDATE", err);
